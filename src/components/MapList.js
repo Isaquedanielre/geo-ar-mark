@@ -118,15 +118,20 @@ export default class MapList extends Component {
 
     openImg:false,
     img:false,
-    loading:false
+    loading:false,
+    loadingMarks:true,
+
+    centerMap: [51.505, -0.09],
+    zoomMap: 2
   }
 
   async componentDidMount(){
     try{
       const data = await getListHistory()
-      this.setState({ markers: data })
+      this.setState({ markers: data, loadingMarks: false })
     }catch(err){
       console.log(err)
+      this.setState({ loadingMarks: false })
       return err
     }
   }
@@ -139,6 +144,7 @@ export default class MapList extends Component {
 
 
   addMarker = (e) => {
+    console.log(e.latlng)
     this.setState({mark:e.latlng})
   }
 
@@ -228,16 +234,21 @@ export default class MapList extends Component {
     }
   }
 
+  setCenterMap = (coords) => this.setState({ centerMap: coords, zoomMap: 6 })
+
 
   render() {
     return (
         <div>
-        <Grid style={{ width:" 90vw", height: 500, padding: 10 }}>
-          <Map onClick={this.addMarker} className="map" center={[51.505, -0.09]} zoom={1}>
+          {this.state.loadingMarks &&
+          <Grid container justify="center" alignContent="center" alignItems="center" direction="column" style={{padding:20}}>
+          <CircularProgress style={{padding:5}}/>
+          <Typography align="center" style={{padding:5}}>Loading map marks...</Typography>
+          </Grid>
+          }
+          <Grid style={{ width:" 90vw", height: 500, padding: 10 }}>
+          <Map onClick={this.addMarker} className="map" center={this.props.centerMap} zoom={this.props.zoomMap}>
             <LayersControl>
-                {/* <BaseLayer name="Satelite">
-                  <BingLayer bingkey={bing_key} type="Aerial" />
-                </BaseLayer> */}
                 <BaseLayer checked name="Map">
                   <TileLayer
                     attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a>'
@@ -274,7 +285,7 @@ export default class MapList extends Component {
                 <Grid container style={{padding:10}} justify="center" direction="column" alignContent="center" alignItems="center">
                 {this.state.imgHistory ? 
                   <React.Fragment>
-                    <img src={this.state.imgHistory} style={{maxWidth:180, maxHeight:180}}/>
+                    <img alt='img' src={this.state.imgHistory} style={{maxWidth:180, maxHeight:180}}/>
                     <label align="center" onClick={() => this.setState({imgHistory:false})} style={{padding:5,margin:5, backgroundColor:'#ff7675', color:'white',fontSize:10, borderRadius:10, maxWidth:100}} >
                       X - Remove Image
                     </label>
